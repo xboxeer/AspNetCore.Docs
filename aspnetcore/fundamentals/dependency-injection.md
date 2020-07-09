@@ -383,6 +383,35 @@ public class Program
 }
 ```
 
+## Resolve services in ConfigureService method
+
+In some cases you may need to resolve a service in ConfigureService method, for example, reading a setting from database then decide which service to register. Typically, in asp.net core, the most well known approach to resolve a service is constructor injection. However, in this stage, this approach is not available. So, we can create a service provider in ConfigureService, then resolve the service that we want by utilizing that service provider.
+
+```csharp
+public void ConfigureService(IServiceCollection services)
+{
+    // Configure the services
+    services.AddTransient<ISettingService, DBSettingService>();    
+
+    // Build an intermediate service provider
+    using (var serviceProvider = services.BuildServiceProvider())
+    {
+        // Resolve the services from the service provider
+        var settingService = serviceProvider.GetRequiredService<ISettingService>();
+        // Use your services to decide if FooService and BarService should be injected
+        if(settingService.EnableFoo())
+        {
+            services.AddScoped(IFooService,FooService);
+        }
+        if(settingService.EnableBar())
+        {
+            services.AddScoped(IBarService,BarService);
+        }
+    };
+
+}
+```
+
 ## Scope validation
 
 When the app is running in the Development environment and calls [CreateDefaultBuilder](xref:fundamentals/host/generic-host#default-builder-settings) to build the host, the default service provider performs checks to verify that:
@@ -963,6 +992,35 @@ public class Program
     public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
         WebHost.CreateDefaultBuilder(args)
             .UseStartup<Startup>();
+}
+```
+
+## Resolve services in ConfigureService method
+
+In some cases you may need to resolve a service in ConfigureService method, for example, reading a setting from database then decide which service to register. Typically, in asp.net core, the most well known approach to resolve a service is constructor injection. However, in this stage, this approach is not available. So, we can create a service provider in ConfigureService, then resolve the service that we want by utilizing that service provider.
+
+```csharp
+public void ConfigureService(IServiceCollection services)
+{
+    // Configure the services
+    services.AddTransient<ISettingService, DBSettingService>();    
+
+    // Build an intermediate service provider
+    using (var serviceProvider = services.BuildServiceProvider())
+    {
+        // Resolve the services from the service provider
+        var settingService = serviceProvider.GetRequiredService<ISettingService>();
+        // Use your services to decide if FooService and BarService should be injected
+        if(settingService.EnableFoo())
+        {
+            services.AddScoped(IFooService,FooService);
+        }
+        if(settingService.EnableBar())
+        {
+            services.AddScoped(IBarService,BarService);
+        }
+    };
+
 }
 ```
 
